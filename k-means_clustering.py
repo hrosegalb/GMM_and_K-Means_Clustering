@@ -17,9 +17,7 @@ def calculate_distances(data, centroids, k):
     return distances
 
 
-def group_data(data, centroids, k):
-    distances = calculate_distances(data, centroids, k)
-    
+def group_data(distances):
     clusters = np.zeros((distances.shape[0], 1))
     for i in range(distances.shape[0]):
         row = distances[i]
@@ -29,7 +27,18 @@ def group_data(data, centroids, k):
     return clusters
 
 
+def sum_of_squares_error(prev_centroids, centroids):
+    return np.sum((centroids - prev_centroids)**2)
+
+
+def plot_data(x_vals, y_vals, cent_x, cent_y):
+    plt.scatter(x_vals, y_vals, s=7)
+    plt.scatter(cent_x, cent_y, marker='*', s=200, c='g')
+    plt.show()
+
+
 def main():
+    # Toy data
     data = [[0, 1],
             [4, 5],
             [12,9],
@@ -44,34 +53,46 @@ def main():
     print(data)
     print("\n")
 
+    # k sets the number of groups for the data
     k = 3
+    r = 10
+
+    # Randomly initialize the centroids
+    centroid_list = []
     centroids = np.array([[random.randint(0, 15), random.randint(0, 15)]for i in range(3)])
     print(centroids)
 
+    error_list = []
+    for _ in range(r):
+        prev_centroids = np.zeros(centroids.shape)
+    
+        distances = calculate_distances(data, centroids, k)
+        clusters = group_data(distances)
+        prev_centroids = copy.deepcopy(centroids)
+
+        for i in range(k):
+            data_pts = [data[j] for j in range(data.shape[0]) if clusters[j] == i]
+            if data_pts != []:
+                centroids[i] = np.mean(data_pts, axis=0)
+    
+        print(prev_centroids)
+        print(centroids)
+    
+        error = sum_of_squares_error(prev_centroids, centroids)
+        centroid_list.append(prev_centroids)
+        error_list.append(error)
+    
+    iterations = list(zip(error_list, centroid_list))
+    print(iterations)
+    min_idx = error_list.index(min(error_list))
+    print("Min index: {0}".format(min_idx))
+
+    # Split data up in order to plot it
     x_vals = np.array(data[:, 0])
     y_vals = np.array(data[:, 1])
-    plt.scatter(x_vals, y_vals, s=7)
-
     cent_x = np.array(centroids[:, 0])
     cent_y = np.array(centroids[:, 1])
-    plt.scatter(cent_x, cent_y, marker='*', s=200, c='g')
-    #plt.show()
-
-    prev_centroids = np.zeros(centroids.shape)
-    
-    clusters = group_data(data, centroids, k)
-    prev_centroids = copy.deepcopy(centroids)
-
-    for i in range(k):
-        data_pts = [data[j] for j in range(data.shape[0]) if clusters[j] == i]
-        centroids[i] = np.mean(data_pts, axis=0)
-    
-    print(prev_centroids)
-    print(centroids)
-    
-    error = np.linalg.norm(centroids - prev_centroids)
-    print("\n")
-    print(error)
+    #plot_data(x_vals, y_vals, cent_x, cent_y)
 
 if __name__ == '__main__':
     main()
