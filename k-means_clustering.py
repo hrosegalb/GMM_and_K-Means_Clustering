@@ -1,3 +1,5 @@
+from read_in_csv import read_csv
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -34,14 +36,15 @@ def sum_of_squares_error(prev_centroids, centroids):
 def plot_data(x_vals, y_vals, cent_x, cent_y, targets, k):
     for i in range(targets.shape[0]):
         if targets[i] == 0:
-            print("Inside target 0")
             plt.scatter(x_vals[i], y_vals[i], c='c', s=7)
         elif targets[i] == 1:
-            print("Inside target 1")
             plt.scatter(x_vals[i], y_vals[i], c='m', s=7)
         elif targets[i] == 2:
-            print("Inside target 2")
             plt.scatter(x_vals[i], y_vals[i], c='y', s=7)
+        elif targets[i] == 3:
+            plt.scatter(x_vals[i], y_vals[i], c='g', s=7)
+        elif targets[i] == 4:
+            plt.scatter(x_vals[i], y_vals[i], c='r', s=7)
     
     plt.scatter(cent_x, cent_y, marker='*', s=200, c='b')
     plt.show()
@@ -49,28 +52,33 @@ def plot_data(x_vals, y_vals, cent_x, cent_y, targets, k):
 
 def main():
     # Toy data
-    data = [[0, 1],
-            [4, 5],
-            [12,9],
-            [4, 3],
-            [8, 9],
-            [3, 1],
-            [5, 6],
-            [7, 2],
-            [1, 3]
-    ]
-    data = np.array(data)
-    print(data)
-    print("\n")
+    #data = [[0, 1],
+    #        [4, 5],
+    #        [12,9],
+    #        [4, 3],
+    #        [8, 9],
+    #        [3, 1],
+    #        [5, 6],
+    #        [7, 2],
+    #        [1, 3]
+    #]
+    #data = np.array(data)
+    #print(data)
+    #print("\n")
 
     # k sets the number of groups for the data
-    k = 3
+    # r sets the number of trials
+    k = 4
+    print("k = {0}".format(k))
     r = 10
 
+    # Import the data 
+    data = read_csv("GMM_dataset.csv")
+
     # Randomly initialize the centroids
-    max_val = data.max()
+    max_val = int(data.max())
     centroids = np.array([[random.randint(0, max_val), random.randint(0, max_val)]for i in range(k)])
-    print(centroids)
+    print("Initial centroids: {0}".format(centroids))
 
     centroid_list = []
     error_list = []
@@ -87,9 +95,6 @@ def main():
             if data_pts != []:
                 centroids[i] = np.mean(data_pts, axis=0)
     
-        print(prev_centroids)
-        print(centroids)
-    
         error = sum_of_squares_error(prev_centroids, centroids)
 
         error_list.append(error)
@@ -100,7 +105,7 @@ def main():
     min_idx = error_list.index(min(error_list))
     best_pick = centroid_list[min_idx]
     targets = cluster_list[min_idx]
-    print("Targets: {0}".format(targets))
+    print("Final list of centroids used for plotting: {0}".format(best_pick))
 
     # Split data up in order to plot it
     x_vals = np.array(data[:, 0])
