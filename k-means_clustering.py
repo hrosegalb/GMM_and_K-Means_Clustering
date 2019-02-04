@@ -43,8 +43,6 @@ def plot_data(x_vals, y_vals, cent_x, cent_y, targets, k):
             plt.scatter(x_vals[i], y_vals[i], c='y', s=7)
         elif targets[i] == 3:
             plt.scatter(x_vals[i], y_vals[i], c='g', s=7)
-        elif targets[i] == 4:
-            plt.scatter(x_vals[i], y_vals[i], c='r', s=7)
     
     plt.scatter(cent_x, cent_y, marker='*', s=200, c='b')
     plt.show()
@@ -69,7 +67,6 @@ def main():
     # k sets the number of groups for the data
     # r sets the number of trials
     k = 4
-    print("k = {0}".format(k))
     r = 10
 
     # Import the data 
@@ -78,7 +75,6 @@ def main():
     # Randomly initialize the centroids
     max_val = int(data.max())
     centroids = np.array([[random.randint(0, max_val), random.randint(0, max_val)]for i in range(k)])
-    print("Initial centroids: {0}".format(centroids))
 
     centroid_list = []
     error_list = []
@@ -105,7 +101,6 @@ def main():
     min_idx = error_list.index(min(error_list))
     best_pick = centroid_list[min_idx]
     targets = cluster_list[min_idx]
-    print("Final list of centroids used for plotting: {0}".format(best_pick))
 
     # Split data up in order to plot it
     x_vals = np.array(data[:, 0])
