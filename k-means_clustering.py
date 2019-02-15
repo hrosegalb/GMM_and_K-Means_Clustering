@@ -29,11 +29,7 @@ def group_data(distances):
     return clusters
 
 
-def sum_of_squares_error(prev_centroids, centroids):
-    return np.sum((centroids - prev_centroids)**2)
-
-
-def plot_data(x_vals, y_vals, cent_x, cent_y, targets, k):
+def plot_k_means_data(x_vals, y_vals, cent_x, cent_y, targets, k):
     for i in range(targets.shape[0]):
         if targets[i] == 0:
             plt.scatter(x_vals[i], y_vals[i], c='c', s=7)
@@ -43,58 +39,48 @@ def plot_data(x_vals, y_vals, cent_x, cent_y, targets, k):
             plt.scatter(x_vals[i], y_vals[i], c='y', s=7)
         elif targets[i] == 3:
             plt.scatter(x_vals[i], y_vals[i], c='g', s=7)
+        elif targets[i] == 4:
+            plt.scatter(x_vals[i], y_vals[i], c='r', s=7)
     
-    plt.scatter(cent_x, cent_y, marker='*', s=200, c='b')
-    plt.show()
+    plt.scatter(cent_x, cent_y, marker='*', s=200, c='b', )
+    plt.title("K-Means Clustering with {0} Clusters".format(k))
+    #plt.show()
+    plt.savefig("best-k-means_{0}-clusters.png".format(k))
 
 
 def main():
-    # Toy data
-    #data = [[0, 1],
-    #        [4, 5],
-    #        [12,9],
-    #        [4, 3],
-    #        [8, 9],
-    #        [3, 1],
-    #        [5, 6],
-    #        [7, 2],
-    #        [1, 3]
-    #]
-    #data = np.array(data)
-    #print(data)
-    #print("\n")
-
-    # k sets the number of groups for the data
-    # r sets the number of trials
-    k = 4
-    r = 10
+    k = 3  # Sets the number of clusters for the data
+    r = 10 # Sets the number of trials to be performed
 
     # Import the data 
     data = read_csv("GMM_dataset.csv")
 
     # Randomly initialize the centroids
-    max_val = int(data.max())
-    centroids = np.array([[random.randint(0, max_val), random.randint(0, max_val)]for i in range(k)])
+    max_val = data.max()
+    centroids = np.array([[random.uniform(0.0, max_val), random.uniform(0.0, max_val)]for i in range(k)])
 
     centroid_list = []
     error_list = []
     cluster_list = []
     for _ in range(r):
-        prev_centroids = np.zeros(centroids.shape)
-    
+        centroid_list.append(centroids)
+
         distances = calculate_distances(data, centroids, k)
         clusters = group_data(distances)
-        prev_centroids = copy.deepcopy(centroids)
 
+        error = np.zeros((k, 1))
         for i in range(k):
             data_pts = [data[j] for j in range(data.shape[0]) if clusters[j] == i]
             if data_pts != []:
-                centroids[i] = np.mean(data_pts, axis=0)
-    
-        error = sum_of_squares_error(prev_centroids, centroids)
+                # Get sum of squares error between all of the data points assigned to a cluster and the centroid
+                error[i] = np.sum((data_pts - centroids[i])**2)
 
-        error_list.append(error)
-        centroid_list.append(prev_centroids)
+                # Get new centroid positions by calculating the mean of all the data points in the cluster
+                centroids[i] = np.mean(data_pts, axis=0)
+            
+        sum_of_squares_error = np.sum(error, axis=0)
+
+        error_list.append(sum_of_squares_error)
         cluster_list.append(clusters)
 
     # Find the centroids with the smallest sum of squares error
@@ -107,7 +93,7 @@ def main():
     y_vals = np.array(data[:, 1])
     cent_x = np.array(best_pick[:, 0])
     cent_y = np.array(best_pick[:, 1])
-    plot_data(x_vals, y_vals, cent_x, cent_y, targets, k)
+    plot_k_means_data(x_vals, y_vals, cent_x, cent_y, targets, k)
 
 if __name__ == '__main__':
     main()
