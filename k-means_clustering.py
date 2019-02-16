@@ -55,7 +55,8 @@ def expectation_step(data, centroids, covariance_matrices, priors):
             var = multivariate_normal(mean=centroids[i], cov=covariance_matrices[i])
             responsibilities[i,j] = priors[i] * var.pdf(data[j])
 
-    print(responsibilities)
+    responsibilities = responsibilities / np.sum(responsibilities, axis=0)
+    return responsibilities
 
 
 def main():
@@ -120,7 +121,13 @@ def main():
                 print("Covariance shape: {0}".format(cov.shape))
                 covariance_matrices.append(cov)
 
-    expectation_step(data, centroids, covariance_matrices, priors)
+    responsibilities = expectation_step(data, centroids, covariance_matrices, priors)
+
+    N_k = np.sum(responsibilities, axis=1)
+    print(N_k)
+    print(N_k.shape)
+
+    new_mu = 
 
 if __name__ == '__main__':
     main()
