@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import random
-import copy
+from scipy.stats import multivariate_normal
 
 def calculate_distances(data, centroids, k):
     distances = np.zeros((data.shape[0], k))
@@ -46,6 +46,16 @@ def plot_k_means_data(x_vals, y_vals, cent_x, cent_y, targets, k):
     plt.title("K-Means Clustering with {0} Clusters".format(k))
     #plt.show()
     plt.savefig("best-k-means_{0}-clusters.png".format(k))
+
+def expectation_step(data, centroids, covariance_matrices, priors):
+    responsibilities = np.zeros((centroids.shape[0], data.shape[0]))
+
+    for j in range(data.shape[0]):
+        for i in range(centroids.shape[0]):
+            var = multivariate_normal(mean=centroids[i], cov=covariance_matrices[i])
+            responsibilities[i,j] = priors[i] * var.pdf(data[j])
+
+    print(responsibilities)
 
 
 def main():
@@ -94,6 +104,23 @@ def main():
     cent_x = np.array(best_pick[:, 0])
     cent_y = np.array(best_pick[:, 1])
     plot_k_means_data(x_vals, y_vals, cent_x, cent_y, targets, k)
+
+
+    # GMMs
+    centroids = best_pick
+    covariance_matrices = []
+    priors = np.array([1/k for i in range(k)])
+
+    targets = cluster_list[min_idx]
+    for i in range(k):
+            data_pts = [data[j] for j in range(data.shape[0]) if targets[j] == i]
+            if data_pts != []:
+                data_pts = np.array(data_pts)
+                cov = np.cov(data_pts.T)
+                print("Covariance shape: {0}".format(cov.shape))
+                covariance_matrices.append(cov)
+
+    expectation_step(data, centroids, covariance_matrices, priors)
 
 if __name__ == '__main__':
     main()
