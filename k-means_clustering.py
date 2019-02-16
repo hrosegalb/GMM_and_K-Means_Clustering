@@ -52,9 +52,11 @@ def expectation_step(data, centroids, covariance_matrices, priors):
 
     for j in range(data.shape[0]):
         for i in range(centroids.shape[0]):
-            var = multivariate_normal(mean=centroids[i], cov=covariance_matrices[i])
-            responsibilities[i,j] = priors[i] * var.pdf(data[j])
+            dist = multivariate_normal(mean=centroids[i], cov=covariance_matrices[i])
+            responsibilities[i,j] = priors[i] * dist.pdf(data[j])
 
+    # Normalize the responsibilities by the sum of the responsibilities of a given data point x_i for each cluster
+    # Essentially, this sums all the columns of the matrix
     responsibilities = responsibilities / np.sum(responsibilities, axis=0)
     return responsibilities
 
@@ -108,7 +110,10 @@ def main():
 
 
     # GMMs
+    gmm_centroid_list = []
     centroids = best_pick
+    gmm_centroid_list.append(centroids)
+    
     covariance_matrices = []
     priors = np.array([1/k for i in range(k)])
 
@@ -127,7 +132,25 @@ def main():
     print(N_k)
     print(N_k.shape)
 
-    new_mu = 
+    covariance_matrices = []
+    centroids = np.zeros((k, 2))
+    for i in range(k):
+        new_mu = np.dot(responsibilities[i,:], data) / N_k[i]
+        centroids[i] = new_mu
+        print("New mu_{0}: {1}".format(i, new_mu))
+        sigma = np.zeros((2,2))
+
+        for j in range(data.shape[0]):
+            sigma += responsibilities[i][j] * np.outer((data[j,:] - new_mu), (data[j,:] - new_mu))
+
+        sigma /= N_k[i]
+        covariance_matrices.append(sigma)
+        priors[i] = N_k[i] / np.sum(N_k)
+
+    print("Centroids: {0}".format(centroids))
+    print("Covariance matrices: {0}".format(covariance_matrices))
+    print("Priors: {0}".format(priors))
+
 
 if __name__ == '__main__':
     main()
