@@ -61,6 +61,21 @@ def expectation_step(data, centroids, covariance_matrices, priors):
     return responsibilities
 
 
+def compute_log_likelihood(data, centroids, covariance_matrices, priors):
+    responsibilities = np.zeros((centroids.shape[0], data.shape[0]))
+
+    for j in range(data.shape[0]):
+        for i in range(centroids.shape[0]):
+            dist = multivariate_normal(mean=centroids[i], cov=covariance_matrices[i])
+            responsibilities[i,j] = priors[i] * dist.pdf(data[j])
+
+    summed_responsibilities = np.sum(responsibilities, axis=0)
+    log_of_responsibilities = np.log(summed_responsibilities)
+    log_likelihood = np.sum(log_of_responsibilities)
+    print("Log likelihood: {0}".format(log_likelihood))
+
+
+
 def main():
     k = 3  # Sets the number of clusters for the data
     r = 10 # Sets the number of trials to be performed
@@ -150,6 +165,8 @@ def main():
     print("Centroids: {0}".format(centroids))
     print("Covariance matrices: {0}".format(covariance_matrices))
     print("Priors: {0}".format(priors))
+
+    compute_log_likelihood(data, centroids, covariance_matrices, priors)
 
 
 if __name__ == '__main__':
