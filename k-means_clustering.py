@@ -2,6 +2,8 @@ from read_in_csv import read_csv
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import cm
+from mpl_toolkits.mplot3d import Axes3D
 
 import random
 from scipy.stats import multivariate_normal
@@ -61,6 +63,24 @@ def expectation_step(data, centroids, covariance_matrices, priors):
     return responsibilities
 
 
+def maximization_step(data, responsibilities, N_k, k, priors):
+    covariance_matrices = []
+    centroids = np.zeros((k, 2))
+    for i in range(k):
+        new_mu = np.dot(responsibilities[i,:], data) / N_k[i]
+        centroids[i] = new_mu
+        sigma = np.zeros((2,2))
+
+        for j in range(data.shape[0]):
+            sigma += responsibilities[i][j] * np.outer((data[j,:] - new_mu), (data[j,:] - new_mu))
+
+        sigma /= N_k[i]
+        covariance_matrices.append(sigma)
+        priors[i] = N_k[i] / np.sum(N_k)
+
+    return centroids, covariance_matrices, priors
+
+
 def compute_log_likelihood(data, centroids, covariance_matrices, priors):
     responsibilities = np.zeros((centroids.shape[0], data.shape[0]))
 
@@ -73,6 +93,28 @@ def compute_log_likelihood(data, centroids, covariance_matrices, priors):
     log_of_responsibilities = np.log(summed_responsibilities)
     log_likelihood = np.sum(log_of_responsibilities)
     print("Log likelihood: {0}".format(log_likelihood))
+    return log_likelihood
+
+
+def plot_gmm_data(data, centroids, covariance_matrices, k):
+    xlist = np.linspace(-4.0, 4.0)
+    ylist = np.linspace(-4.0, 4.0)
+    X, Y = np.meshgrid(xlist, ylist)
+
+    fig, ax = plt.subplots()
+    ax.scatter(data[:, 0], data[:, 1], s=7)
+    for i in range(k):
+        mu = centroids[i]
+        sigma = covariance_matrices[i]
+
+        pos = np.empty(X.shape + (2,))
+        pos[:, :, 0] = X
+        pos[:, :, 1] = Y
+
+        Z = multivariate_normal.pdf(pos, mu, sigma)
+        CS = ax.contour(X, Y, Z)
+
+    plt.show()
 
 
 
@@ -128,6 +170,7 @@ def main():
     gmm_centroid_list = []
     centroids = best_pick
     gmm_centroid_list.append(centroids)
+    old_log_likelihood = float('-inf')
     
     covariance_matrices = []
     priors = np.array([1/k for i in range(k)])
@@ -138,35 +181,21 @@ def main():
             if data_pts != []:
                 data_pts = np.array(data_pts)
                 cov = np.cov(data_pts.T)
-                print("Covariance shape: {0}".format(cov.shape))
                 covariance_matrices.append(cov)
 
-    responsibilities = expectation_step(data, centroids, covariance_matrices, priors)
+    for _ in range(r):
+        responsibilities = expectation_step(data, centroids, covariance_matrices, priors)
 
-    N_k = np.sum(responsibilities, axis=1)
-    print(N_k)
-    print(N_k.shape)
+        N_k = np.sum(responsibilities, axis=1)
 
-    covariance_matrices = []
-    centroids = np.zeros((k, 2))
-    for i in range(k):
-        new_mu = np.dot(responsibilities[i,:], data) / N_k[i]
-        centroids[i] = new_mu
-        print("New mu_{0}: {1}".format(i, new_mu))
-        sigma = np.zeros((2,2))
+        centroids, covariance_matrices, priors = maximization_step(data, responsibilities, N_k, k, priors)
 
-        for j in range(data.shape[0]):
-            sigma += responsibilities[i][j] * np.outer((data[j,:] - new_mu), (data[j,:] - new_mu))
-
-        sigma /= N_k[i]
-        covariance_matrices.append(sigma)
-        priors[i] = N_k[i] / np.sum(N_k)
-
-    print("Centroids: {0}".format(centroids))
-    print("Covariance matrices: {0}".format(covariance_matrices))
-    print("Priors: {0}".format(priors))
-
-    compute_log_likelihood(data, centroids, covariance_matrices, priors)
+        new_log_likelihood = compute_log_likelihood(data, centroids, covariance_matrices, priors)
+        plot_gmm_data(data, centroids, covariance_matrices, k)
+        #if abs(new_log_likelihood - old_log_likelihood) < 0.0001:
+            #break
+        #else:
+            #old_log_likelihood = new_log_likelihood
 
 
 if __name__ == '__main__':
