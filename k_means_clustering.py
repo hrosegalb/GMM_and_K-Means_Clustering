@@ -18,7 +18,7 @@ def calculate_distances(data, centroids, k):
         
         Calculates the euclidian distance between each data point and each
         centroid. Returns a (1500, k) matrix of all the distances. """
-        
+
     distances = np.zeros((data.shape[0], k))
     
     for i in range(centroids.shape[0]):
@@ -91,7 +91,8 @@ def run_k_means_for_gmm(data, k):
 
     # Randomly initialize the centroids
     max_val = data.max()
-    centroids = np.array([[random.uniform(0.0, max_val), random.uniform(0.0, max_val)] for i in range(k)])
+    min_val = data.min()
+    centroids = np.array([[random.uniform(min_val, max_val), random.uniform(min_val, max_val)] for i in range(k)])
 
     centroid_list = []
     error_list = []
@@ -141,10 +142,11 @@ def k_means_algorithm():
     # Import the data 
     data = read_csv("GMM_dataset.csv")
     max_val = data.max()
+    min_val = data.min()
 
     # Randomly initialize the centroids
     for k in [3, 4, 5]:
-        centroids = np.array([[random.uniform(0.0, max_val), random.uniform(0.0, max_val)]for i in range(k)])
+        centroids = np.array([[random.uniform(min_val, max_val), random.uniform(min_val, max_val)] for i in range(k)])
 
         centroid_list = []
         error_list = []
