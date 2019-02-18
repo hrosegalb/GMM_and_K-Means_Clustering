@@ -29,11 +29,12 @@ def expectation_step(data, means, covariance_matrices, priors):
     for j in range(data.shape[0]):
         for i in range(means.shape[0]):
             dist = multivariate_normal(mean=means[i], cov=covariance_matrices[i])
-            responsibilities[i,j] = priors[i] * dist.pdf(data[j])
+            responsibilities[i][j] = priors[i] * dist.pdf(data[j])
 
     # Normalize the responsibilities by the sum of the responsibilities of a given data point x_i for each cluster
     # by summing all of the columns of the matrix
     responsibilities = responsibilities / np.sum(responsibilities, axis=0)
+
     return responsibilities
 
 
@@ -51,13 +52,17 @@ def maximization_step(data, responsibilities, N_k, k, priors):
     means = np.zeros((k, 2))
 
     for i in range(k):
-        new_mean = np.dot(responsibilities[i,:], data) / N_k[i] # Gets the sum of the responsibilities * data points, normalized by N_k
+        # Gets the sum of the responsibilities * data points, normalized by N_k
+        new_mean = np.dot(responsibilities[i], data) 
+        new_mean = new_mean / N_k[i]
         means[i] = new_mean
         sigma = np.zeros((2,2))
 
         # Gets the sum of the responsibility for each data point multiplied by the transpose of (x_n - mu) * (x_n - mu)
         for j in range(data.shape[0]):
-            sigma += responsibilities[i][j] * np.outer((data[j,:] - new_mean), (data[j,:] - new_mean))
+            dist = np.outer((data[j] - means[i]), (data[j] - means[i]))
+            cov = responsibilities[i][j] * dist
+            sigma += cov
 
         # Normalize sigma_k by N_k and append the matrix to the list of covariance matrices
         sigma /= N_k[i]
