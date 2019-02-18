@@ -1,5 +1,5 @@
 from read_in_csv import read_csv
-from k_means_clustering import run_k_means_algorithm
+from k_means_clustering import run_k_means_for_gmm
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -50,7 +50,6 @@ def compute_log_likelihood(data, centroids, covariance_matrices, priors):
     summed_responsibilities = np.sum(responsibilities, axis=0)
     log_of_responsibilities = np.log(summed_responsibilities)
     log_likelihood = np.sum(log_of_responsibilities)
-    #print("Log likelihood: {0}".format(log_likelihood))
     return log_likelihood
 
 
@@ -80,7 +79,7 @@ def plot_gmm_data(data, centroids, covariance_matrices, k):
 
 
 
-def main():
+def gmm_algorithm():
     r = 10                   # Number of random restarts to be done
     num_iterations = 100     # Maximum number of times E- and M-steps will be iterated
     gmm_mean_list = []       # Stores the list of final means from each restart
@@ -90,11 +89,10 @@ def main():
 
     # Import the data 
     data = read_csv("GMM_dataset.csv")
-    for k in [3, 4, 5]: 
-        print("Cluster {0}".format(k))
+    for k in [3, 4]: 
         for _ in range(r):
             # Run k-means in order to obtain initial means and targets
-            results = run_k_means_algorithm(data, k)
+            results = run_k_means_for_gmm(data, k)
             centroids = results["centroids"]
             targets = results["targets"]
 
@@ -111,7 +109,6 @@ def main():
                     covariance_matrices.append(cov)
 
             for l in range(num_iterations):
-                print("Iteration {0}".format(l))
                 responsibilities = expectation_step(data, centroids, covariance_matrices, priors)
 
                 N_k = np.sum(responsibilities, axis=1)
@@ -139,7 +136,3 @@ def main():
         print("[GMM] Best covariance matrices out of {0} clusters and {1} restarts: {2}\n".format(k, r, best_cov_matrices))
         print("[GMM] Best priors out of {0} clusters and {1} restarts: {2}\n".format(k, r, best_priors))
         plot_gmm_data(data, best_centroids, best_cov_matrices, k)
-
-
-if __name__ == '__main__':
-    main()

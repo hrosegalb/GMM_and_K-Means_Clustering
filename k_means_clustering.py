@@ -51,7 +51,7 @@ def plot_k_means_data(x_vals, y_vals, cent_x, cent_y, targets, k):
     plt.savefig("best-k-means_{0}-clusters.png".format(k))
 
 
-def run_k_means_algorithm(data, k):
+def run_k_means_for_gmm(data, k):
     r = 10 # Sets the number of trials to be performed
 
     # Randomly initialize the centroids
@@ -96,7 +96,6 @@ def run_k_means_algorithm(data, k):
 
 
 def k_means_algorithm():
-    #k = [3, 4, 5]  # Sets the number of clusters for the data
     r = 10 # Sets the number of trials to be performed
 
     # Import the data 
