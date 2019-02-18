@@ -6,8 +6,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal
 
+# Hannah Galbraith
+# CS546
+# Program 1
+# 2/17/19
 
 def calculate_distances(data, centroids, k):
+    """ :param data: (1500, 2) matrix of floats
+        :param centroids: (k, 2) matrix of floats
+        :param k: integer
+        
+        Calculates the euclidian distance between each data point and each
+        centroid. Returns a (1500, k) matrix of all the distances. """
+        
     distances = np.zeros((data.shape[0], k))
     
     for i in range(centroids.shape[0]):
@@ -21,6 +32,12 @@ def calculate_distances(data, centroids, k):
 
 
 def group_data(distances):
+    """ :param distances: (1500, k) matrix of floats
+        Finds the index of the smallest distance for each row in distances and assigns the 
+        corresponding data point to the cluster represented by that index.
+        
+        Returns a (1500,) vector of integers representing the targets for each data point. """
+
     clusters = np.zeros((distances.shape[0], 1))
     for i in range(distances.shape[0]):
         row = distances[i]
@@ -31,8 +48,18 @@ def group_data(distances):
 
 
 def plot_k_means_data(x_vals, y_vals, cent_x, cent_y, targets, k):
+    """ :param x_vals: (1500,) vector of floats
+        :param y_vals: (1500,) vector of floats
+        :param cent_x: (k,) vector of floats
+        :param cent_y: (k,) vector of floats
+        :param targets: (1500,) vector of floats
+        :param k: integer
+        
+        Plots each data point according to which target it has been assigned to.
+        Saves the graph as a png. """
+
     if k > 3:
-        plt.clf()
+        plt.clf()   # Clear figure so graphs don't overlap
 
     for i in range(targets.shape[0]):
         if targets[i] == 0:
@@ -52,11 +79,19 @@ def plot_k_means_data(x_vals, y_vals, cent_x, cent_y, targets, k):
 
 
 def run_k_means_for_gmm(data, k):
+    """ :param data: (1500, 2) matrix of floats
+        :param k: integer
+        
+        This algorithm is called by the gmm_algorithm() function. The function passes in the 
+        data set and an integer representing the number of desired clusters. run_k_means_for_gmm() then
+        iterates the k-means algorithm 'r' times and returns the centroids and target labels associated with
+        the smallest sum-of-squares error. """
+
     r = 10 # Sets the number of trials to be performed
 
     # Randomly initialize the centroids
     max_val = data.max()
-    centroids = np.array([[random.uniform(0.0, max_val), random.uniform(0.0, max_val)]for i in range(k)])
+    centroids = np.array([[random.uniform(0.0, max_val), random.uniform(0.0, max_val)] for i in range(k)])
 
     centroid_list = []
     error_list = []
@@ -82,7 +117,7 @@ def run_k_means_for_gmm(data, k):
         error_list.append(sum_of_squares_error)
         cluster_list.append(clusters)
 
-    # Find the centroids with the smallest sum of squares error
+    # Find the centroids and targets with the smallest sum of squares error
     min_idx = error_list.index(min(error_list))
     best_pick = centroid_list[min_idx]
     targets = cluster_list[min_idx]
@@ -96,6 +131,11 @@ def run_k_means_for_gmm(data, k):
 
 
 def k_means_algorithm():
+    """ This algorithm is called in run_k_means_gmm.py. This executes the k-means algorithm 'r' times per
+        cluster size, finds the centroids and targets associated with the smallest sum-of-squares error for 
+        each cluster size, and plots the clusters and centroids. Prints out the best sum-of-squares value 
+        for each cluster size. """
+
     r = 10 # Sets the number of trials to be performed
 
     # Import the data 
@@ -130,7 +170,7 @@ def k_means_algorithm():
             error_list.append(sum_of_squares_error)
             cluster_list.append(clusters)
 
-        # Find the centroids with the smallest sum of squares error
+        # Find the centroids and targets with the smallest sum of squares error
         min_idx = error_list.index(min(error_list))
         best_pick = centroid_list[min_idx]
         targets = cluster_list[min_idx]
