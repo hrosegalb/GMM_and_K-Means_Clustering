@@ -60,7 +60,8 @@ def maximization_step(data, responsibilities, N_k, k, priors):
 
         # Gets the sum of the responsibility for each data point multiplied by the transpose of (x_n - mu) * (x_n - mu)
         for j in range(data.shape[0]):
-            dist = np.outer((data[j] - means[i]), (data[j] - means[i]))
+            dist = data[j] - means[i]
+            dist = dist[:, None] * dist[None, :]
             cov = responsibilities[i][j] * dist
             sigma += cov
 
@@ -87,7 +88,7 @@ def compute_log_likelihood(data, means, covariance_matrices, priors):
     for j in range(data.shape[0]):
         for i in range(means.shape[0]):
             dist = multivariate_normal(mean=means[i], cov=covariance_matrices[i])
-            responsibilities[i,j] = priors[i] * dist.pdf(data[j])
+            responsibilities[i][j] = priors[i] * dist.pdf(data[j])
 
     summed_responsibilities = np.sum(responsibilities, axis=0)
     log_of_responsibilities = np.log(summed_responsibilities)
